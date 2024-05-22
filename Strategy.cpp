@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "Point.h"
 #include "Strategy.h"
+#include "tree.h"
 
 using namespace std;
 
@@ -48,8 +49,8 @@ extern "C" Point *getPoint(const int M, const int N, const int *top, const int *
 		该部分对参数使用没有限制，为了方便实现，你可以定义自己新的类、.h文件、.cpp文件
 	*/
 	//Add your own code below
-
-	//a naive example
+	/*
+     //a naive example
 	for (int i = N-1; i >= 0; i--) {
 		if (top[i] > 0) {
 			x = top[i] - 1;
@@ -57,7 +58,16 @@ extern "C" Point *getPoint(const int M, const int N, const int *top, const int *
 			break;
 		}
 	}
-
+    */
+   	board[noX][noY]=-1;
+	//a naive example
+	printf("in getPoint\n");
+	MCTSTree* tree=new MCTSTree(M,N,top,board);
+	printf("tree created\n");
+	Node* n=tree->UCTSearch();
+	printf("searched x,y: %d %d\n",n->my_x,n->my_y);
+	x=n->my_x;
+	y=n->my_y;
 	/*
 		不要更改这段代码
 	*/
