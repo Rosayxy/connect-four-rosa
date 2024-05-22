@@ -61,11 +61,8 @@ extern "C" Point *getPoint(const int M, const int N, const int *top, const int *
     */
    	board[noX][noY]=-1;
 	//a naive example
-	printf("in getPoint\n");
 	MCTSTree* tree=new MCTSTree(M,N,top,board);
-	printf("tree created\n");
 	Node* n=tree->UCTSearch();
-	printf("searched x,y: %d %d\n",n->my_x,n->my_y);
 	x=n->my_x;
 	y=n->my_y;
 	/*
