@@ -61,6 +61,17 @@ class Node{
             }this->children[i]=nullptr;
         }expandables_cnt=cnt;
     }
+    ~Node(){
+        for(int i=0;i<M;i++){
+            delete[] this->board[i];
+        }delete[] this->board;
+        delete[] this->top;
+        for(int i=0;i<N;i++){
+            if(this->children[i]!=nullptr){
+                delete this->children[i];
+            }
+        }
+    }
 };
 class MCTSTree{
     public:
@@ -79,7 +90,9 @@ class MCTSTree{
             this->weights[i]=0;
         }
     }
-    ~MCTSTree()=default;
+    ~MCTSTree(){
+        delete this->root;
+    }
     Node* UCTSearch(){
         // init clock
         const std::chrono::_V2::system_clock::time_point now = std::chrono::system_clock::now();
@@ -194,6 +207,9 @@ class MCTSTree{
             score=0.0;
             }
         if(score!=-2.0){
+            for(int i=0;i<node->M;i++){
+                delete[] board[i];}
+                delete[] board;
             return score;
         }
         // continue simulate the tree
@@ -216,13 +232,26 @@ class MCTSTree{
         my_player=3-my_player;
         board[pos][idx]=my_player;
         if(my_player==2&&machineWin(pos,idx,node->M,node->N,board)){
+            for(int i=0;i<node->M;i++){
+                delete[] board[i];}
+                delete[] board;
             return 1.0;
         }else if(my_player==1&&userWin(pos,idx,node->M,node->N,board)){
+            for(int i=0;i<node->M;i++){
+                delete[] board[i];}
+                delete[] board;
             return -1.0;
         }else if (isTie(node->N,top)){
+            for(int i=0;i<node->M;i++){
+                delete[] board[i];}
+                delete[] board;
             return 0.0;
         }
-        }return 0; // this statement is never reached
+        }
+        for(int i=0;i<node->M;i++){
+            delete[] board[i];}
+            delete[] board;
+        return 0; // this statement is never reached
     }
     Node* bestChild(Node* node){
         double max_score=-10000000.0;
