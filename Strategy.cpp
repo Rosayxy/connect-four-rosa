@@ -65,6 +65,7 @@ extern "C" Point *getPoint(const int M, const int N, const int *top, const int *
 	Node* n=tree->UCTSearch();
 	x=n->my_x;
 	y=n->my_y;
+	delete tree;
 	/*
 		不要更改这段代码
 	*/
