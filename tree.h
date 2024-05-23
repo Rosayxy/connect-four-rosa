@@ -43,13 +43,13 @@ class Node{
         }
         this->parent=parent;
         this->num_visits=0;
-        this->score=0;
+        this->score=0.0;
         this->is_over=0;
         this->is_tie=0;
         if(parent){
         this->player=3-parent->player;
         }else{
-            this->player=2;
+            this->player=1;
         }
         this->my_x=-1;
         this->my_y=-1;
@@ -58,8 +58,11 @@ class Node{
             if(top[i]>0){
                 this->expandables[cnt]=i;
                 cnt++;
-            }this->children[i]=nullptr;
+            }
         }expandables_cnt=cnt;
+        for(int i=0;i<N;i++){
+            this->children[i]=nullptr;
+        }
     }
     ~Node(){
         for(int i=0;i<M;i++){
@@ -69,6 +72,7 @@ class Node{
         for(int i=0;i<N;i++){
             if(this->children[i]!=nullptr){
                 delete this->children[i];
+                this->children[i]=nullptr;
             }
         }
     }
@@ -83,7 +87,7 @@ class MCTSTree{
         }
         this->board=board;
         this->root=new Node(M,N,this->top,this->board,0);
-        this->root->player=2;
+        this->root->player=1;
         this->num_nodes=0;
         this->num_leafs=0;
         for(int i=0;i<N;i++){
@@ -101,30 +105,47 @@ class MCTSTree{
             // check time
             const std::chrono::_V2::system_clock::time_point now2 = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsed_seconds = now2 - now;
-            if (elapsed_seconds.count()>1.9){
+            if (elapsed_seconds.count()>2.2){
                 break;
             }
+           /* if(cnt%100==0){
+                printf("before treePolicy\n");
+                fflush(stdout);
+            }*/
             Node* v1=this->treePolicy(root);
+            /*if(cnt%100==0){
+                printf("before default Policy\n");
+                fflush(stdout);
+            }*/
+            //printf("before defaultPolicy\n");
                 double default_policy_result=this->defaultPolicy(v1); 
-               v1->score+=default_policy_result;
-                v1->num_visits++;
+            /*    if(cnt%100==0){
+                    printf("before backup\n");
+                    fflush(stdout);
+                }*/
+                //printf("before backup\n");
                 this->backup(v1,default_policy_result);
             cnt++;
         }
-            return this->bestChild(this->root);
+            return this->bestRootChild();
         }
     
     Node* expand(Node* node){ // 参数传入 Node* 是反编译代码中的a2
     // 随机选取一列进行扩展
     int v1 = rand() % node->expandables_cnt;
+    // 先拷贝一份 top
+    int top[13];
+    for(int i=0;i<node->N;i++){
+        top[i]=node->top[i];
+    }
     int idx=node->expandables[v1]; // 列号
     int pos=node->top[idx]-1; // 行号 注意，按照pdf上的图，认为列从上往下增长
-    node->top[idx]--;
+    top[idx]--;
     // 回避掉挖去的点
     if((pos-1>=0)&&(node->board[pos-1][idx]==-1)){
-        node->top[idx]--;
+        top[idx]--;
     }
-    node->children[idx]=new Node(this->M,this->N,node->top,node->board,node);
+    node->children[idx]=new Node(this->M,this->N,top,node->board,node);
     node->children[idx]->my_x=pos;
     node->children[idx]->my_y=idx;
     //printf("in expand inserting point..%d %d player: %d\n",pos,idx,node->player);
@@ -258,13 +279,28 @@ class MCTSTree{
         Node* best_child=nullptr;
         for(int i=0;i<node->N;i++){
             if(node->children[i]!=nullptr){
-                double tmp_score=node->children[i]->score/node->children[i]->num_visits*(node->children[i]->player==2?1:-1)+sqrt(2.0*log(node->num_visits)/node->children[i]->num_visits); //注意用户出手是负的，要改回来
+                double tmp_score=node->children[i]->score/node->children[i]->num_visits*(node->children[i]->player==2?1:-1)+sqrt(2.0*log(double(node->num_visits))/double(node->children[i]->num_visits)); //注意用户出手是负的，要改回来
                 if(tmp_score>max_score){
                     max_score=tmp_score;
                     best_child=node->children[i];
                 }
             }
         }return best_child;
+    }
+    Node* bestRootChild(){
+        double max_score=-1000000.0;
+        Node* best_child=nullptr;
+        for(int i=0;i<N;i++){
+            if(root->children[i]!=nullptr){
+                double tmp_score=0.5*root->children[i]->score*2.0/root->children[i]->num_visits;
+                if(tmp_score>max_score){
+                    max_score=tmp_score;
+                    best_child=root->children[i];
+                }
+            }
+        }
+        //printf("best score: %f\n",max_score);
+        return best_child;
     }
     Node* root;
     int M;
