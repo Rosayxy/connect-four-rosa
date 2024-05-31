@@ -27,6 +27,56 @@ using namespace std;
 	output:
 		你的落子点Point
 */
+extern "C" Point must_win(const int M,const int N,const int *top,const int *board){
+	// 拷贝棋盘
+	int **_board = new int *[M];
+	for (int i = 0; i < M; i++)
+	{
+		_board[i] = new int[N];
+		for (int j = 0; j < N; j++)
+		{
+			_board[i][j] = board[i * N + j];
+		}
+	}
+	// 对棋盘遍历所有列 尝试加点，如果加点后胜利则返回该点
+	for(int i=0;i<N;i++){
+		if(top[i]>0){
+			_board[top[i]-1][i]=2;
+			if(machineWin(top[i]-1,i,M,N,_board)){
+				// 删除
+				for (int i = 0; i < M; i++)
+				{
+					delete[] _board[i];
+				}
+				delete[] _board;
+				return Point(top[i]-1,i);
+			}
+			_board[top[i]-1][i]=0;
+		}
+	}
+	// 判断有无 userWin 如果有就堵住点
+	for(int i=0;i<N;i++){
+		if(top[i]>0){
+			_board[top[i]-1][i]=1;
+			if(userWin(top[i]-1,i,M,N,_board)){
+				// 删除
+				for (int i = 0; i < M; i++)
+				{
+					delete[] _board[i];
+				}
+				delete[] _board;
+				return Point(top[i]-1,i);
+			}
+			_board[top[i]-1][i]=0;
+		}
+	}// 删除棋盘
+	for (int i = 0; i < M; i++)
+	{
+		delete[] _board[i];
+	}
+	delete[] _board;
+	return Point(-1,-1);
+}
 extern "C" Point *getPoint(const int M, const int N, const int *top, const int *_board,
 						   const int lastX, const int lastY, const int noX, const int noY)
 {
@@ -61,6 +111,11 @@ extern "C" Point *getPoint(const int M, const int N, const int *top, const int *
     */
    	board[noX][noY]=-1;
 	//a naive example
+	// 先判断必胜点
+	Point p=must_win(M,N,top,_board);
+	if(p.x!=-1){
+		return new Point(p.x,p.y);
+		}
 	MCTSTree* tree=new MCTSTree(M,N,top,board);
 	Node* n=tree->UCTSearch();
 	x=n->my_x;
