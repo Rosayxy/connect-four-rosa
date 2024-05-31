@@ -23,6 +23,14 @@ class Node{
     int is_over;
     int is_tie;
     int player;
+    int weight_9[9]={4,5,6,7,8,7,6,5,4};
+    int weight_10[10]={4,5,6,7,8,8,7,6,5,4};
+    int weight_11[11]={5,6,7,8,9,10,9,8,7,6,5};
+    int weight_12[12]={5,6,7,8,9,10,10,9,8,7,6,5};
+    int weight_9_sum=52;
+    int weight_10_sum=60;
+    int weight_11_sum=80;
+    int weight_12_sum=90;
     Node(int M,int N,int* top,int** board,Node* parent){
         this->M=M;
         this->N=N;
@@ -63,6 +71,36 @@ class Node{
         for(int i=0;i<N;i++){
             this->children[i]=nullptr;
         }
+    }
+    int my_rand(){
+        // 列数为N 取对应的那一行权重
+        int expandables_quan[13]={0};
+        int *ptr;
+        if(N==9){
+            ptr=weight_9;
+        }else if(N==10){
+            ptr=weight_10;
+        }else if(N==11){
+            ptr=weight_11;
+        }else{
+           ptr=weight_12;
+        }
+        // 求 expandables 里面的对应下标
+        int sum=0;
+        for(int i=0;i<expandables_cnt;i++){
+            expandables_quan[i]=ptr[expandables[i]];
+            sum+=expandables_quan[i];
+        }
+        int r=rand()%sum;
+        // 求满足的下标
+        int tmp=0;
+        for(int i=0;i<expandables_cnt;i++){
+            tmp+=expandables_quan[i];
+            if(tmp>=r){
+                return i;
+            }
+        }// this statement is never reached
+        return expandables_cnt/2;
     }
     ~Node(){
         for(int i=0;i<M;i++){
@@ -132,7 +170,7 @@ class MCTSTree{
     
     Node* expand(Node* node){ // 参数传入 Node* 是反编译代码中的a2
     // 随机选取一列进行扩展
-    int v1 = rand() % node->expandables_cnt;
+    int v1 = node->my_rand();
     // 先拷贝一份 top
     int top[13];
     for(int i=0;i<node->N;i++){
@@ -201,7 +239,6 @@ class MCTSTree{
             return expand(node);
         }
         }
-
     }
     double defaultPolicy(Node* node){
         // judge if node is terminal
@@ -239,7 +276,7 @@ class MCTSTree{
         int pos=-1;
         int idx=0;
         while(pos<0){
-        int v1 = rand() % node->expandables_cnt;
+        int v1 = node->my_rand();
         idx=node->expandables[v1]; // 列号
         pos=top[idx]-1; // 行号 注意，按照pdf上的图，认为列从上往下增长
         }
@@ -310,4 +347,5 @@ class MCTSTree{
     int num_nodes;
     int num_leafs;
     int weights[13]; //todo 优化的时候再做吧
+    
 };
