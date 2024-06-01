@@ -143,7 +143,7 @@ class MCTSTree{
             // check time
             const std::chrono::_V2::system_clock::time_point now2 = std::chrono::system_clock::now();
             std::chrono::duration<double> elapsed_seconds = now2 - now;
-            if (elapsed_seconds.count()>2.2){
+            if (elapsed_seconds.count()>2.0){
                 break;
             }
            /* if(cnt%100==0){
